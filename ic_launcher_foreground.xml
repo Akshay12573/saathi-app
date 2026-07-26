@@ -1,0 +1,55 @@
+package com.saathi.assistant
+
+import android.accessibilityservice.AccessibilityService
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+
+/**
+ * Yeh service sirf WhatsApp ke andar chalti hai (manifest/xml config mein
+ * packageNames="com.whatsapp" set hai, isliye yeh doosre kisi app ko access
+ * nahi kar sakti).
+ *
+ * Jab CommandProcessor WhatsApp chat khol ke text bhar deta hai, yeh service
+ * "Send" button ko dhoond kar ek baar tap karti hai — bas isi ek kaam ke liye.
+ *
+ * pendingAutoSend flag ko CommandProcessor true karta hai; is service ko
+ * enable karna zaroori hai: Settings > Accessibility > Saathi > On.
+ */
+class VoiceAccessibilityService : AccessibilityService() {
+
+    companion object {
+        @Volatile
+        var pendingAutoSend: Boolean = false
+    }
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (!pendingAutoSend) return
+        if (event?.packageName != "com.whatsapp") return
+
+        val root = rootInActiveWindow ?: return
+        val sendButton = findSendButton(root)
+        if (sendButton != null) {
+            sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            pendingAutoSend = false // ek hi baar dabana hai, dobara nahi
+        }
+    }
+
+    /** WhatsApp ke UI mein "Send" button ka content-description "Send" hota hai. */
+    private fun findSendButton(node: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        val nodes = node.findAccessibilityNodeInfosByViewId("com.whatsapp:id/send")
+        if (nodes.isNotEmpty()) return nodes[0]
+
+        // fallback: content description se dhoondo
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i) ?: continue
+            if (child.contentDescription?.toString()?.contains("Send", ignoreCase = true) == true) {
+                return child
+            }
+            val found = findSendButton(child)
+            if (found != null) return found
+        }
+        return null
+    }
+
+    override fun onInterrupt() {}
+}
