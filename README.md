@@ -97,12 +97,20 @@ Before building, point the app at your deployed backend. In
 ```
 SAATHI_BACKEND_BASE_URL=https://your-backend.example.com/
 SAATHI_BACKEND_API_KEY=<same value as backend's SAATHI_BACKEND_API_KEY>
+
+# Only if SAATHI_BACKEND_BASE_URL is http:// (not https://) for local testing —
+# adds a narrowly-scoped cleartext exception for exactly this host/IP.
+# Leave unset for a normal https:// backend.
+SAATHI_BACKEND_CLEARTEXT_HOST=
 ```
 
 (These feed `buildConfigField` in `app/build.gradle` — they are an
 app↔backend access token, not the LLM key, but keep them out of source
 control the same way; `local.properties` is already git-ignored by the
-Android Gradle Plugin's default `.gitignore` convention.)
+Android Gradle Plugin's default `.gitignore` convention. `app/build.gradle`
+also generates `res/xml/network_security_config.xml` at build time from
+`SAATHI_BACKEND_CLEARTEXT_HOST` instead of it being a committed file — so a
+real IP/host used for local HTTP testing never ends up in git history.)
 
 Then:
 

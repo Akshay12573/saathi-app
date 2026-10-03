@@ -54,7 +54,37 @@ android {
             excludes += ['META-INF/DEPENDENCIES']
         }
     }
+    sourceSets {
+        main {
+            res.srcDirs += "$buildDir/generated/res/networkConfig"
+        }
+    }
 }
+
+// Generates res/xml/network_security_config.xml at build time instead of
+// committing it, so a real backend host/IP used for local HTTP testing never
+// ends up in git. Pass -PSAATHI_BACKEND_CLEARTEXT_HOST=<host-or-ip> only when
+// SAATHI_BACKEND_BASE_URL is http:// (not https://); leave it unset for a
+// normal HTTPS backend and the generated config stays cleartext-deny-all.
+tasks.register("generateNetworkSecurityConfig") {
+    def cleartextHost = (project.findProperty('SAATHI_BACKEND_CLEARTEXT_HOST') ?: "").toString()
+    def outputDir = file("$buildDir/generated/res/networkConfig/xml")
+    outputs.dir(outputDir)
+    doLast {
+        outputDir.mkdirs()
+        def domainConfig = cleartextHost ? """
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">${cleartextHost}</domain>
+    </domain-config>""" : ""
+        file("$outputDir/network_security_config.xml").text = """<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />${domainConfig}
+</network-security-config>
+"""
+    }
+}
+
+preBuild.dependsOn generateNetworkSecurityConfig
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'

@@ -40,7 +40,15 @@ jobs:
         run: gradle testDebugUnitTest --no-daemon
 
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon
+        env:
+          SAATHI_BACKEND_BASE_URL: ${{ secrets.SAATHI_BACKEND_BASE_URL }}
+          SAATHI_BACKEND_API_KEY: ${{ secrets.SAATHI_BACKEND_API_KEY }}
+          SAATHI_BACKEND_CLEARTEXT_HOST: ${{ secrets.SAATHI_BACKEND_CLEARTEXT_HOST }}
+        run: |
+          gradle assembleDebug --no-daemon \
+            -PSAATHI_BACKEND_BASE_URL="$SAATHI_BACKEND_BASE_URL" \
+            -PSAATHI_BACKEND_API_KEY="$SAATHI_BACKEND_API_KEY" \
+            -PSAATHI_BACKEND_CLEARTEXT_HOST="$SAATHI_BACKEND_CLEARTEXT_HOST"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
