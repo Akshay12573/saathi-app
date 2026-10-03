@@ -19,13 +19,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install required SDK platform & build-tools
+      # ubuntu-latest runners already ship a preinstalled Android SDK at
+      # $ANDROID_HOME with licenses pre-accepted. We deliberately do NOT use
+      # android-actions/setup-android here: it tries to download a newer
+      # cmdline-tools build whose licenses aren't pre-accepted, which hangs
+      # the non-interactive "Review licenses (y/N)?" prompt and fails the job.
+      - name: Accept any missing SDK licenses & install platform/build-tools
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | sort -V | tail -1)"
+          echo "Using sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
