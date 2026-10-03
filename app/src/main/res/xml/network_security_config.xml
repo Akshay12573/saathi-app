@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Default: no cleartext anywhere. -->
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!-- Temporary exception: the Saathi backend is reachable over plain HTTP
+         at this one IP while HTTPS (Caddy) is being wired up. Remove this
+         domain-config once SAATHI_BACKEND_BASE_URL is switched to an
+         https:// URL. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">82.180.146.149</domain>
+    </domain-config>
+</network-security-config>

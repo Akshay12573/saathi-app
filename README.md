@@ -9,7 +9,7 @@ research) — always asking for confirmation before anything sensitive.
 Voice/Text
   → Android SpeechRecognizer (hi-IN)
   → POST /api/chat on the Saathi backend
-  → AI (OpenAI) → structured JSON action plan
+  → AI (Anthropic Claude) → structured JSON action plan
   → ActionMapper (validates) → confirmation dialog if sensitive
   → ActionExecutor (Call/SMS/WhatsApp/Calendar/Alarm/Reminder/App/URL)
   → TextToSpeech reads the result back
@@ -17,7 +17,7 @@ Voice/Text
 
 ## Why there's a backend at all
 
-**The OpenAI/Anthropic API key never ships inside the APK.** It lives only in
+**The Anthropic (Claude) API key never ships inside the APK.** It lives only in
 the backend process's environment variables. The Android app only ever talks
 to the Saathi backend, authenticated with a separate, rotatable
 `x-saathi-key` header — not the LLM key.
@@ -26,7 +26,7 @@ to the Saathi backend, authenticated with a separate, rotatable
 
 ```
 app/        Android app module (Kotlin, ViewBinding, min SDK 26)
-backend/    Node.js/Express AI backend (holds OPENAI_API_KEY, TAVILY_API_KEY)
+backend/    Node.js/Express AI backend (holds ANTHROPIC_API_KEY, TAVILY_API_KEY)
 .github/workflows/build.yml   CI: builds the debug APK + runs both test suites
 ```
 
@@ -36,7 +36,7 @@ backend/    Node.js/Express AI backend (holds OPENAI_API_KEY, TAVILY_API_KEY)
 |---|---|---|
 | 1 | Hindi/Hinglish voice input | `voice/SpeechInputManager.kt` (hi-IN + en-IN) |
 | 2 | Speech-to-text | Android `SpeechRecognizer` |
-| 3 | AI NLU | backend `/api/chat` (OpenAI) |
+| 3 | AI NLU | backend `/api/chat` (Anthropic Claude) |
 | 4 | Intent classification + structured action planning | `backend/src/llm/promptSchema.js` → JSON action schema |
 | 5 | Text-to-speech | `voice/TtsManager.kt` |
 | 6 | Contact lookup | `contacts/ContactLookup.kt` |
@@ -66,7 +66,7 @@ backend/    Node.js/Express AI backend (holds OPENAI_API_KEY, TAVILY_API_KEY)
 ```bash
 cd backend
 cp .env.example .env
-# edit .env: set OPENAI_API_KEY, SAATHI_BACKEND_API_KEY (any long random string),
+# edit .env: set ANTHROPIC_API_KEY, SAATHI_BACKEND_API_KEY (any long random string),
 # optionally TAVILY_API_KEY for web research
 npm install
 npm start        # listens on PORT (default 8080)

@@ -31,15 +31,17 @@ Respond with ONLY a JSON object, no markdown fences, matching exactly:
 If you don't have enough information to fill required params (e.g. user said "remind me" but gave no time), set needs_more_info true, leave actions empty, and ask exactly one clarifying follow_up_question in Hinglish — also put that same question in reply_text.
 
 Never invent a phone number — always pass the spoken contact name through in "contact" and let the app resolve it from the phone's own contacts.
-Never claim an action already happened — reply_text should describe what you're ABOUT to do, the app reports back what actually happened.`;
 
-function buildMessages(history, userText, nowIso) {
-  return [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "system", content: `Current date/time (ISO 8601, use this to compute epoch_millis): ${nowIso}` },
-    ...history,
-    { role: "user", content: userText }
-  ];
+CRITICAL: you cannot see whether an action actually succeeds — the Android app executes it after you respond and reports the real result back to the user separately. So reply_text must NEVER use past/completed tense for an action you just planned ("set kar diya", "bhej diya", "call kar diya", "ho gaya"). Use future/intent phrasing instead ("set kar raha hoon", "bhejta hoon", "call karta hoon abhi"). Example: for SET_REMINDER say "Theek hai, 10 minute baad reminder laga raha hoon" — NOT "maine reminder set kar diya".`;
+
+// Anthropic's Messages API takes the system prompt as a separate top-level
+// field, not as a message with role "system" — so these are split in two.
+function buildSystemPrompt(nowIso) {
+  return `${SYSTEM_PROMPT}\n\nCurrent date/time (ISO 8601, use this to compute epoch_millis): ${nowIso}`;
 }
 
-module.exports = { SYSTEM_PROMPT, buildMessages };
+function buildMessages(history, userText) {
+  return [...history, { role: "user", content: userText }];
+}
+
+module.exports = { SYSTEM_PROMPT, buildSystemPrompt, buildMessages };

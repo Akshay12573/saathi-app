@@ -1,6 +1,6 @@
 const express = require("express");
-const { buildMessages } = require("../llm/promptSchema");
-const { completeJson } = require("../llm/openaiClient");
+const { buildMessages, buildSystemPrompt } = require("../llm/promptSchema");
+const { completeJson } = require("../llm/anthropicClient");
 const { getHistory, appendTurn } = require("../session/sessionStore");
 
 const router = express.Router();
@@ -17,8 +17,9 @@ router.post("/chat", async (req, res) => {
 
   try {
     const history = getHistory(session_id);
-    const messages = buildMessages(history, text, new Date().toISOString());
-    const parsed = await completeJson(messages);
+    const messages = buildMessages(history, text);
+    const systemPrompt = buildSystemPrompt(new Date().toISOString());
+    const parsed = await completeJson(systemPrompt, messages);
 
     const replyText = typeof parsed.reply_text === "string" ? parsed.reply_text : "";
     const actions = Array.isArray(parsed.actions) ? parsed.actions : [];

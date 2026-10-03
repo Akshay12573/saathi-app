@@ -1,6 +1,6 @@
 const express = require("express");
 const { search } = require("../search/searchProvider");
-const { summarize } = require("../llm/openaiClient");
+const { summarize } = require("../llm/anthropicClient");
 
 const router = express.Router();
 
