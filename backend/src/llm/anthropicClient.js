@@ -53,6 +53,35 @@ async function completeJson(systemPrompt, messages) {
   }
 }
 
+async function completeAgentStep(systemPrompt, messages) {
+  const anthropic = getClient();
+  const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
+
+  const response = await anthropic.messages.create({
+    model,
+    max_tokens: 512,
+    system: systemPrompt,
+    messages
+  });
+
+  const raw = extractText(response);
+  if (!raw) throw new Error("Empty response from LLM");
+
+  try {
+    return JSON.parse(stripCodeFences(raw));
+  } catch (parseErr) {
+    console.warn("[anthropicClient] agent-step non-JSON response:", raw.slice(0, 200));
+    return {
+      action: "FAILED",
+      target_index: null,
+      text_to_type: null,
+      is_sensitive: false,
+      reason: "non-JSON model response",
+      message: "Is step ko samajh nahi paya, rok rahi hoon."
+    };
+  }
+}
+
 async function summarize(prompt) {
   const anthropic = getClient();
   const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
@@ -67,4 +96,4 @@ async function summarize(prompt) {
   return extractText(response);
 }
 
-module.exports = { completeJson, summarize };
+module.exports = { completeJson, completeAgentStep, summarize };

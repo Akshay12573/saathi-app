@@ -86,6 +86,19 @@ class ActionMapperTest {
     }
 
     @Test
+    fun `AGENT_TASK requires both app_name and goal, and always needs confirmation`() {
+        val missingGoal = ActionMapper.map(ActionDto(type = "AGENT_TASK", params = mapOf("app_name" to "Instagram")))
+        assertTrue(missingGoal is MappedAction.Invalid)
+
+        val valid = ActionMapper.map(
+            ActionDto(type = "AGENT_TASK", params = mapOf("app_name" to "Instagram", "goal" to "John ko hi bhejo"))
+        ) as MappedAction.AgentTask
+
+        assertEquals("Instagram", valid.appName)
+        assertTrue(valid.requiresConfirmation)
+    }
+
+    @Test
     fun `unknown action type is Invalid`() {
         val result = ActionMapper.map(ActionDto(type = "DELETE_EVERYTHING", params = emptyMap()))
         assertTrue(result is MappedAction.Invalid)

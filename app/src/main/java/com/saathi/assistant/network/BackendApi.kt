@@ -12,4 +12,7 @@ interface BackendApi {
 
     @POST("api/research")
     suspend fun research(@Body request: ResearchRequest): Response<ResearchResponse>
+
+    @POST("api/agent-step")
+    suspend fun agentStep(@Body request: AgentStepRequest): Response<AgentStepResponse>
 }

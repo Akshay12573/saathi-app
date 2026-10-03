@@ -72,6 +72,13 @@ sealed class MappedAction {
         override val confirmationPrompt: String? = null
     ) : MappedAction()
 
+    data class AgentTask(
+        val appName: String,
+        val goal: String,
+        override val requiresConfirmation: Boolean,
+        override val confirmationPrompt: String?
+    ) : MappedAction()
+
     object None : MappedAction() {
         override val requiresConfirmation = false
         override val confirmationPrompt: String? = null

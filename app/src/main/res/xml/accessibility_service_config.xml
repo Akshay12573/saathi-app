@@ -4,6 +4,6 @@
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault"
     android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
     android:notificationTimeout="100"
-    android:packageNames="com.whatsapp"
     android:settingsActivity="com.saathi.assistant.MainActivity" />

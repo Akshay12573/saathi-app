@@ -18,7 +18,8 @@ object ActionMapper {
         ActionType.WHATSAPP_MESSAGE,
         ActionType.SET_ALARM,
         ActionType.ADD_CALENDAR_EVENT,
-        ActionType.SET_REMINDER
+        ActionType.SET_REMINDER,
+        ActionType.AGENT_TASK
     )
 
     fun map(dto: ActionDto): MappedAction {
@@ -98,6 +99,14 @@ object ActionMapper {
                 val query = dto.params["query"]?.trim()
                 if (query.isNullOrBlank()) return MappedAction.Invalid("WEB_SEARCH missing 'query'")
                 MappedAction.WebSearch(query)
+            }
+
+            ActionType.AGENT_TASK -> {
+                val appName = dto.params["app_name"]?.trim()
+                val goal = dto.params["goal"]?.trim()
+                if (appName.isNullOrBlank()) return MappedAction.Invalid("AGENT_TASK missing 'app_name'")
+                if (goal.isNullOrBlank()) return MappedAction.Invalid("AGENT_TASK missing 'goal'")
+                MappedAction.AgentTask(appName, goal, requiresConfirmation, dto.confirmation_prompt)
             }
 
             ActionType.NONE -> MappedAction.None

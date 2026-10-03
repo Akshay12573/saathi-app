@@ -31,6 +31,7 @@ class ActionExecutor(private val context: Context) {
         is MappedAction.SetReminder -> executeSetReminder(action)
         is MappedAction.AddCalendarEvent -> executeAddCalendarEvent(action)
         is MappedAction.WebSearch -> ExecutionResult.fail("WEB_SEARCH must be routed to the backend research endpoint, not ActionExecutor")
+        is MappedAction.AgentTask -> ExecutionResult.fail("AGENT_TASK must be routed to AgentRunner, not ActionExecutor")
         is MappedAction.None -> ExecutionResult.ok("")
         is MappedAction.Invalid -> ExecutionResult.fail(action.reason)
     }

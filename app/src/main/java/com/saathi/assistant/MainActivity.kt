@@ -12,6 +12,7 @@ import com.saathi.assistant.actions.ActionExecutor
 import com.saathi.assistant.actions.ActionMapper
 import com.saathi.assistant.actions.LocalIntentParser
 import com.saathi.assistant.actions.MappedAction
+import com.saathi.assistant.agent.AgentRunner
 import com.saathi.assistant.databinding.ActivityMainBinding
 import com.saathi.assistant.network.ActionDto
 import com.saathi.assistant.network.ChatRequest
@@ -22,7 +23,9 @@ import com.saathi.assistant.util.PermissionUtils
 import com.saathi.assistant.voice.SpeechInputManager
 import com.saathi.assistant.voice.TtsManager
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
+import kotlin.coroutines.resume
 
 class MainActivity : AppCompatActivity() {
 
@@ -171,9 +174,17 @@ class MainActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle(R.string.confirm_title)
                 .setMessage(message)
-                .setPositiveButton(R.string.confirm_yes) { _, _ -> runExecutor(action) }
+                .setPositiveButton(R.string.confirm_yes) { _, _ -> dispatchConfirmedAction(action) }
                 .setNegativeButton(R.string.confirm_no) { _, _ -> appendLine("Saathi: Cancel kar diya.") }
                 .show()
+        } else {
+            dispatchConfirmedAction(action)
+        }
+    }
+
+    private fun dispatchConfirmedAction(action: MappedAction) {
+        if (action is MappedAction.AgentTask) {
+            launchAgentTask(action)
         } else {
             runExecutor(action)
         }
@@ -185,6 +196,42 @@ class MainActivity : AppCompatActivity() {
             appendLine("Saathi: ${result.message}")
             speak(result.message)
         }
+    }
+
+    private fun launchAgentTask(action: MappedAction.AgentTask) {
+        lifecycleScope.launch {
+            val openResult = actionExecutor.execute(MappedAction.OpenApp(action.appName))
+            appendLine("Saathi: ${openResult.message}")
+            if (!openResult.success) return@launch
+
+            appendLine("Saathi: '${action.goal}' try kar rahi hoon...")
+
+            val runner = AgentRunner()
+            runner.run(action.goal, object : AgentRunner.Listener {
+                override fun onLog(line: String) {
+                    appendLine(line)
+                }
+
+                override suspend fun confirmSensitiveStep(description: String): Boolean {
+                    return showConfirmDialog(description)
+                }
+
+                override fun onFinished(success: Boolean, message: String) {
+                    appendLine("Saathi: $message")
+                    speak(message)
+                }
+            })
+        }
+    }
+
+    private suspend fun showConfirmDialog(message: String): Boolean = suspendCancellableCoroutine { cont ->
+        AlertDialog.Builder(this)
+            .setTitle(R.string.confirm_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.confirm_yes) { _, _ -> if (cont.isActive) cont.resume(true) }
+            .setNegativeButton(R.string.confirm_no) { _, _ -> if (cont.isActive) cont.resume(false) }
+            .setOnCancelListener { if (cont.isActive) cont.resume(false) }
+            .show()
     }
 
     private fun runWebResearch(query: String) {

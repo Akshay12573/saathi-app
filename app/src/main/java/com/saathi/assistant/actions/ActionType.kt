@@ -11,6 +11,7 @@ enum class ActionType(val wireName: String) {
     SET_REMINDER("SET_REMINDER"),
     ADD_CALENDAR_EVENT("ADD_CALENDAR_EVENT"),
     WEB_SEARCH("WEB_SEARCH"),
+    AGENT_TASK("AGENT_TASK"),
     NONE("NONE");
 
     companion object {

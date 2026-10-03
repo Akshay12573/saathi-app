@@ -30,6 +30,28 @@ backend/    Node.js/Express AI backend (holds ANTHROPIC_API_KEY, TAVILY_API_KEY)
 .github/workflows/build.yml   CI: builds the debug APK + runs both test suites
 ```
 
+## Cross-app automation (AGENT_TASK)
+
+For requests that need multiple steps inside a specific app ("Instagram pe
+John ko 'hi' bhejo", "Zomato pe order karo"), the backend emits an
+`AGENT_TASK {app_name, goal}` action instead of a fixed one. The app then:
+
+1. Opens `app_name`.
+2. Dumps the current screen's clickable/editable elements
+   (`agent/ScreenDumper.kt`) and sends them + the goal to `POST /api/agent-step`.
+3. The backend picks exactly one next step (TAP/TYPE/SCROLL/BACK/DONE/FAILED).
+4. The app executes it via the Accessibility Service, except a step flagged
+   `is_sensitive` (send/post/pay/delete/confirm-order/...) — that one pauses
+   for an explicit Yes/No dialog first.
+5. Repeats (capped at 15 steps) until DONE, FAILED, or the user cancels a
+   sensitive step.
+
+This needs Settings → Accessibility → Saathi enabled, and (unlike the
+WhatsApp-only auto-send) the service is not restricted to one package —
+it can read/act on whatever app is in the foreground while an agent task is
+running, and only while one is running; it doesn't react to anything on its
+own otherwise.
+
 ## Capability checklist
 
 | # | Capability | Where |

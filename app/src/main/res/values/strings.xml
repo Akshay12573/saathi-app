@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Saathi</string>
-    <string name="accessibility_service_label">Saathi WhatsApp Auto-Send</string>
+    <string name="accessibility_service_label">Saathi App Automation (WhatsApp send + agent tasks)</string>
     <string name="notification_listener_label">Saathi Notification Access</string>
 
     <string name="mic_hint">Bolne ke liye mic dabao…</string>

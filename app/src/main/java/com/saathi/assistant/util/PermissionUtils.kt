@@ -22,6 +22,7 @@ object PermissionUtils {
         is MappedAction.OpenApp -> emptyList()
         is MappedAction.OpenUrl -> emptyList()
         is MappedAction.WebSearch -> emptyList()
+        is MappedAction.AgentTask -> emptyList()
         is MappedAction.None -> emptyList()
         is MappedAction.Invalid -> emptyList()
     }
