@@ -39,7 +39,18 @@ async function completeJson(systemPrompt, messages) {
 
   const raw = extractText(response);
   if (!raw) throw new Error("Empty response from LLM");
-  return JSON.parse(stripCodeFences(raw));
+
+  try {
+    return JSON.parse(stripCodeFences(raw));
+  } catch (parseErr) {
+    // The model occasionally drifts into plain conversation instead of the
+    // JSON contract (seen live on meta/capability questions like "aap
+    // kya-kya kar sakte ho"). Treat its raw text as the reply instead of
+    // failing the whole request with a 502 — no action gets executed, which
+    // is the safe default when we can't parse a structured plan anyway.
+    console.warn("[anthropicClient] non-JSON response, falling back to plain reply:", raw.slice(0, 200));
+    return { reply_text: raw, actions: [], needs_more_info: false, follow_up_question: null };
+  }
 }
 
 async function summarize(prompt) {
