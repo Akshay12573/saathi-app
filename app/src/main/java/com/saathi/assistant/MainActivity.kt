@@ -207,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             appendLine("Saathi: '${action.goal}' try kar rahi hoon...")
 
             val runner = AgentRunner()
-            runner.run(action.goal, object : AgentRunner.Listener {
+            runner.run(action.goal, action.appName, object : AgentRunner.Listener {
                 override fun onLog(line: String) {
                     appendLine(line)
                 }

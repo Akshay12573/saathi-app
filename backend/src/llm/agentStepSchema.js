@@ -26,9 +26,11 @@ Rules:
 - Use "DONE" once the goal is clearly achieved (and you can tell from the dump/history), with a short Hinglish "message" summarizing what happened.
 - Use "FAILED" if the goal looks impossible from here (element not found after reasonable attempts, wrong app, blocked by a login/paywall screen, etc.), with a short Hinglish "message" explaining why, in plain language the user can act on.
 - If you're genuinely unsure which element to pick, prefer SCROLL_DOWN to reveal more of the screen rather than guessing.
+- If ACTIONS SO FAR shows you already tapped the same element (or near-identical one) in the last 2 steps and the screen still looks the same, STOP repeating it — try something different (scroll, a different element, BACK) or use FAILED and say what's blocking progress.
+- If CURRENT SCREEN is empty, the app may just still be loading — prefer waiting is not an option you have, so pick BACK only if you're sure you're in the wrong place, otherwise use FAILED with a message suggesting the app might still be loading.
 - Never claim success in "message" unless the dump/history actually shows it happened — if uncertain, use FAILED and say what's unclear.`;
 
-function buildAgentMessages(goal, screenDump, stepHistory) {
+function buildAgentMessages(goal, screenDump, stepHistory, appName) {
   const dumpText = screenDump
     .map((n) => `[${n.index}] role=${n.role} text="${n.text || ""}" desc="${n.content_desc || ""}" id="${n.resource_id || ""}" clickable=${n.clickable} editable=${n.editable}`)
     .join("\n");
@@ -37,10 +39,12 @@ function buildAgentMessages(goal, screenDump, stepHistory) {
     ? stepHistory.map((h, i) => `${i + 1}. ${h.action}${h.target_text ? ` on "${h.target_text}"` : ""}${h.text_to_type ? ` ("${h.text_to_type}")` : ""}`).join("\n")
     : "(none yet)";
 
+  const appLine = appName ? `CURRENT APP: ${appName} (you are already inside this app — do not try to "open" it again)\n\n` : "";
+
   return [
     {
       role: "user",
-      content: `GOAL: ${goal}\n\nACTIONS SO FAR:\n${historyText}\n\nCURRENT SCREEN:\n${dumpText || "(empty — nothing clickable/editable detected)"}`
+      content: `${appLine}GOAL: ${goal}\n\nACTIONS SO FAR:\n${historyText}\n\nCURRENT SCREEN:\n${dumpText || "(empty — nothing clickable/editable detected, app may still be loading)"}`
     }
   ];
 }

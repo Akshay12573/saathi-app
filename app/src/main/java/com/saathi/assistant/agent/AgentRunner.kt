@@ -24,9 +24,13 @@ class AgentRunner {
     companion object {
         private const val MAX_STEPS = 15
         private const val STEP_SETTLE_DELAY_MS = 600L
+        private const val FIRST_STEP_SETTLE_DELAY_MS = 1500L // cold app launches are slow
+        private const val EMPTY_SCREEN_RETRY_DELAY_MS = 900L
+        private const val MAX_EMPTY_SCREEN_RETRIES = 2
+        private const val MAX_IDENTICAL_REPEATS = 3 // same action+target this many times in a row = stuck
     }
 
-    suspend fun run(goal: String, listener: Listener) {
+    suspend fun run(goal: String, appName: String?, listener: Listener) {
         val service = VoiceAccessibilityService.instance
         if (service == null) {
             listener.onFinished(
@@ -37,14 +41,27 @@ class AgentRunner {
         }
 
         val history = mutableListOf<StepHistoryEntryDto>()
+        var lastActionKey: String? = null
+        var identicalRepeatCount = 0
 
         for (step in 1..MAX_STEPS) {
-            delay(STEP_SETTLE_DELAY_MS)
+            delay(if (step == 1) FIRST_STEP_SETTLE_DELAY_MS else STEP_SETTLE_DELAY_MS)
 
-            val elements = service.dumpCurrentScreen()
-            if (elements == null) {
+            val firstDump = service.dumpCurrentScreen()
+            if (firstDump == null) {
                 listener.onFinished(false, "Screen padh nahi payi — koi app foreground mein nahi hai shayad.")
                 return
+            }
+
+            // Cold app launches sometimes still show a blank/splash screen right
+            // after open — retry a couple of times locally (no API call spent)
+            // before asking the backend to plan against an empty dump.
+            var elements: List<ScreenElement> = firstDump
+            var emptyRetries = 0
+            while (elements.isEmpty() && emptyRetries < MAX_EMPTY_SCREEN_RETRIES) {
+                delay(EMPTY_SCREEN_RETRY_DELAY_MS)
+                elements = service.dumpCurrentScreen() ?: emptyList()
+                emptyRetries++
             }
 
             val dumpDto = elements.map {
@@ -60,7 +77,7 @@ class AgentRunner {
             }
 
             val response = try {
-                val resp = RetrofitClient.api.agentStep(AgentStepRequest(goal, dumpDto, history))
+                val resp = RetrofitClient.api.agentStep(AgentStepRequest(goal, dumpDto, history, appName))
                 if (!resp.isSuccessful) {
                     listener.onFinished(false, "Agent backend error (HTTP ${resp.code()})")
                     return
@@ -72,6 +89,25 @@ class AgentRunner {
             } catch (e: Exception) {
                 listener.onFinished(false, "Agent step fail ho gaya: ${e.message}")
                 return
+            }
+
+            // Stuck-loop guard: same action on the same element 3 times running,
+            // without the LLM itself noticing, means nothing is actually changing.
+            if (response.action == "TAP" || response.action == "TYPE") {
+                val actionKey = "${response.action}:${response.targetIndex}"
+                if (actionKey == lastActionKey) {
+                    identicalRepeatCount++
+                } else {
+                    identicalRepeatCount = 1
+                    lastActionKey = actionKey
+                }
+                if (identicalRepeatCount >= MAX_IDENTICAL_REPEATS) {
+                    listener.onFinished(false, "Same cheez baar-baar try ho rahi thi, lag raha hai atak gaya — ruk rahi hoon.")
+                    return
+                }
+            } else {
+                lastActionKey = null
+                identicalRepeatCount = 0
             }
 
             when (response.action) {

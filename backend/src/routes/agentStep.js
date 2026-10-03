@@ -7,7 +7,7 @@ const { logActivity } = require("../util/activityLog");
 const router = express.Router();
 
 router.post("/agent-step", async (req, res) => {
-  const { goal, screen_dump, step_history } = req.body || {};
+  const { goal, screen_dump, step_history, app_name } = req.body || {};
 
   if (!goal || typeof goal !== "string" || !goal.trim()) {
     return res.status(400).json({ error: "goal is required" });
@@ -17,7 +17,7 @@ router.post("/agent-step", async (req, res) => {
   }
 
   try {
-    const messages = buildAgentMessages(goal, screen_dump, Array.isArray(step_history) ? step_history : []);
+    const messages = buildAgentMessages(goal, screen_dump, Array.isArray(step_history) ? step_history : [], app_name);
     const parsed = await completeAgentStep(AGENT_SYSTEM_PROMPT, messages);
     const sanitized = sanitizeStepResponse(parsed, screen_dump);
 

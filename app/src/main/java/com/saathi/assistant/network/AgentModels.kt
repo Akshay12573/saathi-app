@@ -23,7 +23,8 @@ data class StepHistoryEntryDto(
 data class AgentStepRequest(
     val goal: String,
     @SerializedName("screen_dump") val screenDump: List<ScreenNodeDto>,
-    @SerializedName("step_history") val stepHistory: List<StepHistoryEntryDto>
+    @SerializedName("step_history") val stepHistory: List<StepHistoryEntryDto>,
+    @SerializedName("app_name") val appName: String? = null
 )
 
 data class AgentStepResponse(
