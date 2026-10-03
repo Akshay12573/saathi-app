@@ -2,6 +2,7 @@ const express = require("express");
 const { buildMessages, buildSystemPrompt } = require("../llm/promptSchema");
 const { completeJson } = require("../llm/anthropicClient");
 const { getHistory, appendTurn } = require("../session/sessionStore");
+const { logActivity } = require("../util/activityLog");
 
 const router = express.Router();
 
@@ -26,6 +27,13 @@ router.post("/chat", async (req, res) => {
 
     appendTurn(session_id, text, replyText);
 
+    logActivity("chat", {
+      session_id,
+      user_text: text,
+      reply_text: replyText,
+      action_types: actions.map((a) => a.type)
+    });
+
     res.json({
       reply_text: replyText,
       actions,
@@ -34,6 +42,7 @@ router.post("/chat", async (req, res) => {
     });
   } catch (err) {
     console.error("[/api/chat] failed:", err.message);
+    logActivity("chat_error", { session_id, user_text: text, error: err.message });
     res.status(502).json({ error: `AI backend error: ${err.message}` });
   }
 });

@@ -2,6 +2,7 @@ const express = require("express");
 const { AGENT_SYSTEM_PROMPT, buildAgentMessages } = require("../llm/agentStepSchema");
 const { completeAgentStep } = require("../llm/anthropicClient");
 const { sanitizeStepResponse } = require("../llm/agentStepPolicy");
+const { logActivity } = require("../util/activityLog");
 
 const router = express.Router();
 
@@ -18,9 +19,21 @@ router.post("/agent-step", async (req, res) => {
   try {
     const messages = buildAgentMessages(goal, screen_dump, Array.isArray(step_history) ? step_history : []);
     const parsed = await completeAgentStep(AGENT_SYSTEM_PROMPT, messages);
-    res.json(sanitizeStepResponse(parsed, screen_dump));
+    const sanitized = sanitizeStepResponse(parsed, screen_dump);
+
+    logActivity("agent_step", {
+      goal,
+      step_number: (step_history || []).length + 1,
+      screen_node_count: screen_dump.length,
+      action: sanitized.action,
+      is_sensitive: sanitized.is_sensitive,
+      message: sanitized.message
+    });
+
+    res.json(sanitized);
   } catch (err) {
     console.error("[/api/agent-step] failed:", err.message);
+    logActivity("agent_step_error", { goal, error: err.message });
     res.status(502).json({ error: `Agent step failed: ${err.message}` });
   }
 });
