@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple microphone glyph for the Saathi launcher icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,64 C61.2,64 67,58.2 67,51 L67,33 C67,25.8 61.2,20 54,20 C46.8,20 41,25.8 41,33 L41,51 C41,58.2 46.8,64 54,64 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,51 C78,51 78,51 78,51 C76,51 74.3,52.4 74,54.4 C72.3,65.3 63.1,73.5 52,73.5 C40.9,73.5 31.7,65.3 30,54.4 C29.7,52.4 28,51 26,51 C23.6,51 21.8,53.2 22.2,55.5 C24.3,69.1 35.1,79.8 48,81.6 L48,90 L42,90 C39.8,90 38,91.8 38,94 C38,96.2 39.8,98 42,98 L66,98 C68.2,98 70,96.2 70,94 C70,91.8 68.2,90 66,90 L60,90 L60,81.6 C72.9,79.8 83.7,69.1 85.8,55.5 C86.2,53.2 84.4,51 82,51 C82,51 82,51 82,51" />
+</vector>

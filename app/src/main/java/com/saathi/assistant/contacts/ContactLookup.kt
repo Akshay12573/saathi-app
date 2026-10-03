@@ -1,4 +1,4 @@
-package com.saathi.assistant
+package com.saathi.assistant.contacts
 
 import android.content.Context
 import android.provider.ContactsContract
@@ -13,7 +13,10 @@ class ContactLookup(private val context: Context) {
 
         val cursor = context.contentResolver.query(
             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER),
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+            ),
             null, null, null
         )
 
@@ -27,5 +30,14 @@ class ContactLookup(private val context: Context) {
             }
         }
         return null
+    }
+
+    /** If the spoken value already looks like a phone number, use it as-is. */
+    fun resolve(contactNameOrNumber: String): String? {
+        val digitsOnly = contactNameOrNumber.filter { it.isDigit() || it == '+' }
+        if (digitsOnly.length >= 7 && digitsOnly.length == contactNameOrNumber.trim().length) {
+            return contactNameOrNumber.trim()
+        }
+        return findNumberByName(contactNameOrNumber)
     }
 }

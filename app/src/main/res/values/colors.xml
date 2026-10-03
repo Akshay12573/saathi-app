@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="saathi_primary">#2E7D32</color>
+    <color name="saathi_primary_dark">#1B5E20</color>
+    <color name="saathi_accent">#FFC107</color>
+    <color name="saathi_background">#FAFAFA</color>
+    <color name="saathi_surface">#FFFFFF</color>
+    <color name="saathi_on_primary">#FFFFFF</color>
+    <color name="saathi_text_primary">#212121</color>
+    <color name="ic_launcher_background">#2E7D32</color>
+</resources>

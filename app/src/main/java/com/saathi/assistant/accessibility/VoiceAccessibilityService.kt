@@ -1,19 +1,18 @@
-package com.saathi.assistant
+package com.saathi.assistant.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 
 /**
- * Yeh service sirf WhatsApp ke andar chalti hai (manifest/xml config mein
- * packageNames="com.whatsapp" set hai, isliye yeh doosre kisi app ko access
- * nahi kar sakti).
+ * Optional, explicit user-enabled service (Settings > Accessibility > Saathi).
+ * Scoped to com.whatsapp only via accessibility_service_config.xml, so it
+ * cannot see or act on any other app.
  *
- * Jab CommandProcessor WhatsApp chat khol ke text bhar deta hai, yeh service
- * "Send" button ko dhoond kar ek baar tap karti hai — bas isi ek kaam ke liye.
- *
- * pendingAutoSend flag ko CommandProcessor true karta hai; is service ko
- * enable karna zaroori hai: Settings > Accessibility > Saathi > On.
+ * MainActivity/ActionExecutor sets [pendingAutoSend] to true only after the
+ * user has both (a) enabled this service AND (b) confirmed the specific
+ * message in a dialog. This service's only job is to tap WhatsApp's own
+ * "Send" button once, then immediately disarm itself.
  */
 class VoiceAccessibilityService : AccessibilityService() {
 
@@ -30,16 +29,15 @@ class VoiceAccessibilityService : AccessibilityService() {
         val sendButton = findSendButton(root)
         if (sendButton != null) {
             sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            pendingAutoSend = false // ek hi baar dabana hai, dobara nahi
+            pendingAutoSend = false // one tap only, never repeat automatically
         }
     }
 
-    /** WhatsApp ke UI mein "Send" button ka content-description "Send" hota hai. */
+    /** WhatsApp's compose screen send button; id first, content-description as fallback. */
     private fun findSendButton(node: AccessibilityNodeInfo): AccessibilityNodeInfo? {
         val nodes = node.findAccessibilityNodeInfosByViewId("com.whatsapp:id/send")
         if (nodes.isNotEmpty()) return nodes[0]
 
-        // fallback: content description se dhoondo
         for (i in 0 until node.childCount) {
             val child = node.getChild(i) ?: continue
             if (child.contentDescription?.toString()?.contains("Send", ignoreCase = true) == true) {
@@ -51,5 +49,7 @@ class VoiceAccessibilityService : AccessibilityService() {
         return null
     }
 
-    override fun onInterrupt() {}
+    override fun onInterrupt() {
+        pendingAutoSend = false
+    }
 }

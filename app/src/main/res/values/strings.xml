@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Saathi</string>
+    <string name="accessibility_service_label">Saathi WhatsApp Auto-Send</string>
+    <string name="notification_listener_label">Saathi Notification Access</string>
+
+    <string name="mic_hint">Bolne ke liye mic dabao…</string>
+    <string name="listening">Sun raha hoon…</string>
+    <string name="thinking">Soch raha hoon…</string>
+    <string name="type_hint">Ya yahan type karo…</string>
+
+    <string name="confirm_title">Confirm karo</string>
+    <string name="confirm_yes">Haan, karo</string>
+    <string name="confirm_no">Nahi, cancel</string>
+
+    <string name="permission_required">Is kaam ke liye permission chahiye</string>
+</resources>

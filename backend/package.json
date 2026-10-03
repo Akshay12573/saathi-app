@@ -1,0 +1,21 @@
+{
+  "name": "saathi-backend",
+  "version": "1.0.0",
+  "description": "Saathi AI agent backend — holds the LLM provider key server-side, never ships it to the Android app.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.47.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
